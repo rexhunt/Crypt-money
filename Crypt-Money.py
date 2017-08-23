@@ -32,13 +32,10 @@ while count < len(data):
     price_btc = data[count]["price_btc"]
     last_updated = data[count]["last_updated"]
     
-    print(curid)
-    print(price_btc)
-    print(last_updated)
-    print()
     cursor.execute(dbinsert,(curid, price_btc, last_updated))
-    mariadb_connection.commit()
     count = count + 1
 
+mariadb_connection.commit()
+print("Finished inserting to database")
 
 
