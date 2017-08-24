@@ -1,8 +1,10 @@
 import urllib.request, json
 import mysql.connector as mariadb
+#Converting timestamps
+import datetime
 
 #address to grab JSON from
-url="https://api.coinmarketcap.com/v1/ticker/"
+url="https://api.coinmarketcap.com/v1/ticker/?limit=10"
 
 #Load JSON data into memory
 with urllib.request.urlopen(url) as jsonurl:
@@ -30,8 +32,8 @@ count=0
 while count < len(data):
     curid = data[count]["id"]
     price_btc = data[count]["price_btc"]
-    last_updated = data[count]["last_updated"]
-    
+    last_updated = datetime.datetime.fromtimestamp(int(
+        data[count]["last_updated"]))
     cursor.execute(dbinsert,(curid, price_btc, last_updated))
     count = count + 1
 
