@@ -40,4 +40,8 @@ while count < len(data):
 mariadb_connection.commit()
 print("Finished inserting to database")
 
+#Clean up once finished
+cursor.close()
+mariadb_connection.close()
+
 
