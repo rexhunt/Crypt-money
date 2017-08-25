@@ -2,6 +2,21 @@ import urllib.request, json
 import mysql.connector as mariadb
 #Converting timestamps
 import datetime
+#Exit gracefully on ctrl-c
+import sys, signal
+#Delay to stop overpolling API
+import time
+
+#Code to run when ctrl-c is passed
+def signal_handler(signal, frame):
+    print("Program interruped with ctrl-c, closing connection to DB")
+    #Clean up DB connections once finished
+    cursor.close()
+    mariadb_connection.close()
+    print("DB connection closed. Exiting")
+    sys.exit(0)
+signal.signal(signal.SIGINT, signal_handler)
+
 
 #address to grab JSON from
 url="https://api.coinmarketcap.com/v1/ticker/?limit=10"
@@ -28,36 +43,36 @@ dbinsert = "INSERT INTO Table3 (curid,price_btc,last_updated) VALUES (%s,%s,%s)"
 #Specify the SQL query to check if we have more recent data
 dblatest = "SELECT MAX(last_updated) FROM Table3 WHERE curid = (%s)"
 
+#All runonce code finished. Following is code to loop infinitly
+while True:
+    time.sleep(6)
+    #Loop through all currencies from the JSON
+    count=0
+    while count < len(data):
+        curid = data[count]["id"]
+        price_btc = data[count]["price_btc"]
+        last_updated = str(datetime.datetime.fromtimestamp(int(
+            data[count]["last_updated"])))
+        #Check to see if we actually need to update the DB
+        cursor.execute(dblatest,(curid,))
+        result = str(cursor.fetchone())
+        if result != "(None,)":
+            db_date = datetime.datetime.strptime(result,
+                                             "(datetime.datetime(%Y, %m, %d, %H, %M, %S),)")
+        else:
+            db_date = 0
+        last_updated = datetime.datetime.strptime(last_updated,
+                                             "%Y-%m-%d %H:%M:%S")
+        if last_updated == db_date:
+            print("Timestamps are =, keeping old DB values")
+        else:
+            print("Timestamps are <> Adding to DB.")
+            cursor.execute(dbinsert,(curid, price_btc, last_updated))
+        count = count + 1
+    
+    mariadb_connection.commit()
+    print("Finished inserting to database")
 
-#Loop through all currencies from the JSON
-count=0
-while count < len(data):
-    curid = data[count]["id"]
-    price_btc = data[count]["price_btc"]
-    last_updated = str(datetime.datetime.fromtimestamp(int(
-        data[count]["last_updated"])))
-    #Check to see if we actually need to update the DB
-    cursor.execute(dblatest,(curid,))
-    result = str(cursor.fetchone())
-    if result != "(None,)":
-        db_date = datetime.datetime.strptime(result,
-                                         "(datetime.datetime(%Y, %m, %d, %H, %M, %S),)")
-    else:
-        db_date = 0
-    last_updated = datetime.datetime.strptime(last_updated,
-                                         "%Y-%m-%d %H:%M:%S")
-    if last_updated == db_date:
-        print("Timestamps are =, keeping old DB values")
-    else:
-        print("Timestamps are <> Adding to DB.")
-        cursor.execute(dbinsert,(curid, price_btc, last_updated))
-    count = count + 1
 
-mariadb_connection.commit()
-print("Finished inserting to database")
-
-#Clean up once finished
-cursor.close()
-mariadb_connection.close()
 
 
