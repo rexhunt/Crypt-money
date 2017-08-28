@@ -21,10 +21,6 @@ signal.signal(signal.SIGINT, signal_handler)
 #address to grab JSON from
 url="https://api.coinmarketcap.com/v1/ticker/?limit=10"
 
-#Load JSON data into memory
-with urllib.request.urlopen(url) as jsonurl:
-    data = json.loads(jsonurl.read().decode())
-
 #Specify login details for database
 #I need to get this separated out to a file
 #    so passwords, etc. are not hard coded.
@@ -45,6 +41,9 @@ dblatest = "SELECT MAX(last_updated) FROM Table3 WHERE curid = (%s)"
 
 #All runonce code finished. Following is code to loop infinitly
 while True:
+    #Load JSON data into memory
+    with urllib.request.urlopen(url) as jsonurl:
+        data = json.loads(jsonurl.read().decode())
     time.sleep(6)
     #Loop through all currencies from the JSON
     count=0
