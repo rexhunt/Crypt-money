@@ -21,10 +21,6 @@ signal.signal(signal.SIGINT, signal_handler)
 #address to grab JSON from
 url="https://api.coinmarketcap.com/v1/ticker/?limit=10"
 
-#Load JSON data into memory
-with urllib.request.urlopen(url) as jsonurl:
-    data = json.loads(jsonurl.read().decode())
-
 #Specify login details for database
 #I need to get this separated out to a file
 #    so passwords, etc. are not hard coded.
@@ -45,6 +41,16 @@ dblatest = "SELECT MAX(last_updated) FROM Table3 WHERE curid = (%s)"
 
 #All runonce code finished. Following is code to loop infinitly
 while True:
+    #Catch exceptions with grabbing data from website
+    try:
+        #Load JSON data into memory
+        with urllib.request.urlopen(url) as jsonurl:
+            data = json.loads(jsonurl.read().decode())
+    except TimeoutError:
+        print("Timeout error has occurred.")
+        print("Waiting 2min before retrying")
+        time.sleep(120)
+        continue
     time.sleep(6)
     #Loop through all currencies from the JSON
     count=0
@@ -55,10 +61,9 @@ while True:
             data[count]["last_updated"])))
         #Check to see if we actually need to update the DB
         cursor.execute(dblatest,(curid,))
-        result = str(cursor.fetchone())
+        result = cursor.fetchone()[0]
         if result != "(None,)":
-            db_date = datetime.datetime.strptime(result,
-                                             "(datetime.datetime(%Y, %m, %d, %H, %M, %S),)")
+            db_date = result
         else:
             db_date = 0
         last_updated = datetime.datetime.strptime(last_updated,
