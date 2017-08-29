@@ -41,9 +41,16 @@ dblatest = "SELECT MAX(last_updated) FROM Table3 WHERE curid = (%s)"
 
 #All runonce code finished. Following is code to loop infinitly
 while True:
-    #Load JSON data into memory
-    with urllib.request.urlopen(url) as jsonurl:
-        data = json.loads(jsonurl.read().decode())
+    #Catch exceptions with grabbing data from website
+    try:
+        #Load JSON data into memory
+        with urllib.request.urlopen(url) as jsonurl:
+            data = json.loads(jsonurl.read().decode())
+    except TimeoutError:
+        print("Timeout error has occurred.")
+        print("Waiting 2min before retrying")
+        time.sleep(120)
+        continue
     time.sleep(6)
     #Loop through all currencies from the JSON
     count=0
