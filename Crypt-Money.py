@@ -54,10 +54,9 @@ while True:
             data[count]["last_updated"])))
         #Check to see if we actually need to update the DB
         cursor.execute(dblatest,(curid,))
-        result = str(cursor.fetchone())
+        result = cursor.fetchone()[0]
         if result != "(None,)":
-            db_date = datetime.datetime.strptime(result,
-                                             "(datetime.datetime(%Y, %m, %d, %H, %M, %S),)")
+            db_date = result
         else:
             db_date = 0
         last_updated = datetime.datetime.strptime(last_updated,
