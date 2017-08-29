@@ -66,7 +66,6 @@ while True:
     
     #Calculate new values
     newprice_btc = value1[0] + (avgdiffps * avgtime.total_seconds())
-    print(avgtime)
     newtime=value1[1] + avgtime
     
     #Specify SQL to push calculated values
@@ -77,7 +76,6 @@ while True:
     #Grab last forecast from database
     cursor.execute(dbforeold, (for_curid,))
     oldfore = cursor.fetchone()[0]
-    print(oldfore)
     
     if oldfore == newtime:
         print("The last forecast was for the same time. Not sending duplicate calc.")
