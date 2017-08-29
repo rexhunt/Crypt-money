@@ -49,18 +49,27 @@ diffps2_3=diff2_3[0]/diff2_3[1]
 
 #Get average change
 avgdiffps = diffps1_2+diffps2_3/2
-avgtime = datetime.timedelta(seconds=diff1_2[1]+diff2_3[1]/2)
+avgtime = datetime.timedelta(seconds=int(diff1_2[1]+diff2_3[1]/2))
 
 #Calculate new values
 newprice_btc = value1[0] + (avgdiffps * avgtime.total_seconds())
+print(avgtime)
 newtime=value1[1] + avgtime
-print(newprice_btc)
-print(newtime)
 
 #Specify SQL to push calculated values
 dbnew = "INSERT INTO Forecasts (curid, price_btc, forecast_time, time_now) VALUES (%s, %s, %s, %s)"
+#Specify SQL to check if last forecast has changed
+dbforeold = "SELECT MAX(forecast_time) FROM Forecasts where curid = (%s)"
 
-#Insert the values to the forecast table
-cursor.execute(dbnew,(for_curid, newprice_btc, newtime, datetime.datetime.now()))
-mariadb_connection.commit()
+#Grab last forecast from database
+cursor.execute(dbforeold, (for_curid,))
+oldfore = cursor.fetchone()[0]
+print(oldfore)
 
+if oldfore == newtime:
+    print("The last forecast was for the same time. Not sending duplicate calc.")
+else:
+    #Insert the values to the forecast table
+    cursor.execute(dbnew,(for_curid, newprice_btc, newtime, datetime.datetime.now()))
+    mariadb_connection.commit()
+    print("Wrote new price_btc of:", newprice_btc, " at ", newtime, " for ", for_curid)
