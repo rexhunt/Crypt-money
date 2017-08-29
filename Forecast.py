@@ -62,7 +62,9 @@ while True:
     
     #Get average change
     avgdiffps = diffps1_2+diffps2_3/2
-    avgtime = datetime.timedelta(seconds=int(diff1_2[1]+diff2_3[1]/2))
+    #avgtime = datetime.timedelta(seconds=int(diff1_2[1]+diff2_3[1]/2))
+    #Force forcast to be 10 min into the future.
+    avgtime = datetime.timedelta(minutes=10)
     
     #Calculate new values
     newprice_btc = value1[0] + (avgdiffps * avgtime.total_seconds())
