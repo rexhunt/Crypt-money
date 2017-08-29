@@ -4,6 +4,8 @@ import mysql.connector as mariadb
 import datetime
 #Exit gracefully on ctrl-c
 import sys, signal
+#Delay to slow down forecasting
+import time
 
 #curid to forecast
 for_curid = "ethereum"
@@ -86,4 +88,6 @@ while True:
         cursor.execute(dbnew,(for_curid, newprice_btc, newtime, datetime.datetime.now()))
         mariadb_connection.commit()
         print("Wrote new price_btc of:", newprice_btc, " at ", newtime, " for ", for_curid)
-    
+
+    #Sleep 1 min to slow down looping
+    time.sleep(1*60)
