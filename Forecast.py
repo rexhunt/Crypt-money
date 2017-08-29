@@ -31,7 +31,6 @@ value2 = (0,datetime.datetime.min)
 value3 = (0,datetime.datetime.min)
 for i in result:
     value1 = result[row]
-    print(value1[0])
     if value1[1] > value2[1]:
         value1 = value2
         value2 = result[row]
@@ -40,7 +39,28 @@ for i in result:
         value2 = value3
         value3 = tmp
     row = row + 1
-print(value1[1])
-print(value2[1])
-print(value3[1])
+#Calculate the rate of difference over the last 3 data points
+diff1_2=(value1[0] - value2[0],
+         abs((value1[1]-value2[1]).total_seconds()))
+diff2_3=(value2[0] - value3[0],
+         abs((value1[1]-value2[1]).total_seconds()))
+diffps1_2=diff1_2[0]/diff1_2[1]
+diffps2_3=diff2_3[0]/diff2_3[1]
+
+#Get average change
+avgdiffps = diffps1_2+diffps2_3/2
+avgtime = datetime.timedelta(seconds=diff1_2[1]+diff2_3[1]/2)
+
+#Calculate new values
+newprice_btc = value1[0] + (avgdiffps * avgtime.total_seconds())
+newtime=value1[1] + avgtime
+print(newprice_btc)
+print(newtime)
+
+#Specify SQL to push calculated values
+dbnew = "INSERT INTO Forecasts (curid, price_btc, forecast_time, time_now) VALUES (%s, %s, %s, %s)"
+
+#Insert the values to the forecast table
+cursor.execute(dbnew,(for_curid, newprice_btc, newtime, datetime.datetime.now()))
+mariadb_connection.commit()
 
