@@ -90,12 +90,13 @@ while True:
         #Grab last forecast from database
         cursor.execute(dbforeold, (for_curid,))
         oldfore = cursor.fetchone()[0]
+        dump = cursor.fetchall()
         
         if oldfore == newtime:
             print("The last forecast was for the same time. Not sending duplicate calc.")
         else:
             #Insert the values to the forecast table
             cursor.execute(dbnew,(for_curid, newprice_btc, newtime, datetime.datetime.now()))
-            mariadb_connection.commit()
             print("Wrote new price_btc of:", newprice_btc, " at ", newtime, " for ", for_curid)
-
+        mariadb_connection.commit()
+        
