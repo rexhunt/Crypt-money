@@ -95,6 +95,8 @@ while True:
         if oldfore == newtime:
             #print("The last forecast was for the same time. Not sending duplicate calc.")
             #Ignored to clean up output.
+            pass
+            #Do Nothing
         else:
             #Insert the values to the forecast table
             cursor.execute(dbnew,(for_curid, newprice_btc, newtime, datetime.datetime.now()))
