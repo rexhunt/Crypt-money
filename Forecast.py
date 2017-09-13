@@ -7,6 +7,19 @@ import sys, signal
 #Delay to slow down forecasting
 import time
 
+#Round to nearest time
+#Grabbed from https://stackoverflow.com/questions/3463930/how-to-round-the-minute-of-a-datetime-object-python/10854034#10854034
+def roundTime(dt=None, roundTo=60):
+   """Round a datetime object to any time laps in seconds
+   dt : datetime.datetime object, default now.
+   roundTo : Closest number of seconds to round to, default 1 minute.
+   Author: Thierry Husson 2012 - Use it as you want but don't blame me.
+   """
+   if dt == None : dt = datetime.datetime.now()
+   seconds = (dt.replace(tzinfo=None) - dt.min).seconds
+   rounding = (seconds+roundTo/2) // roundTo * roundTo
+   return dt + datetime.timedelta(0,rounding-seconds,-dt.microsecond)
+
 #curid to forecast
 for_curid = "ethereum"
 
@@ -80,7 +93,8 @@ while True:
         
         #Calculate new values
         newprice_btc = value1[0] + (avgdiffps * avgtime.total_seconds())
-        newtime=value1[1] + avgtime
+        #Round to nearest 5 min
+        newtime=roundTime(value1[1] + avgtime,roundTo=5*60)
         
         #Specify SQL to push calculated values
         dbnew = "INSERT INTO Forecasts (curid, price_btc, forecast_time, time_now) VALUES (%s, %s, %s, %s)"

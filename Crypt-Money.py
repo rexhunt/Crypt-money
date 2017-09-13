@@ -7,6 +7,19 @@ import sys, signal
 #Delay to stop overpolling API
 import time
 
+#Round to nearest time
+#Grabbed from https://stackoverflow.com/questions/3463930/how-to-round-the-minute-of-a-datetime-object-python/10854034#10854034
+def roundTime(dt=None, roundTo=60):
+   """Round a datetime object to any time laps in seconds
+   dt : datetime.datetime object, default now.
+   roundTo : Closest number of seconds to round to, default 1 minute.
+   Author: Thierry Husson 2012 - Use it as you want but don't blame me.
+   """
+   if dt == None : dt = datetime.datetime.now()
+   seconds = (dt.replace(tzinfo=None) - dt.min).seconds
+   rounding = (seconds+roundTo/2) // roundTo * roundTo
+   return dt + datetime.timedelta(0,rounding-seconds,-dt.microsecond)
+
 #Code to run when ctrl-c is passed
 def signal_handler(signal, frame):
     print("Program interruped with ctrl-c, closing connection to DB")
@@ -68,6 +81,8 @@ while True:
             db_date = 0
         last_updated = datetime.datetime.strptime(last_updated,
                                              "%Y-%m-%d %H:%M:%S")
+        #Round to nearest 5 min
+        last_updated = roundTime(last_updated,roundTo=5*60)
         if last_updated == db_date:
             print("Timestamps are =, keeping old DB values")
         else:
